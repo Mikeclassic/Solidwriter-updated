@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, FileText, Loader2, Zap, LogOut, Wand2 } from "lucide-react";
+import { Plus, FileText, Loader2, Zap, LogOut, Wand2, Crown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 export default function Dashboard() {
   const [docs, setDocs] = useState<any[]>([]);
-  const [usage, setUsage] = useState({ apiUsage: 0, usageLimit: 10 });
+  // Default to 25k words
+  const [usage, setUsage] = useState({ apiUsage: 0, usageLimit: 25000, plan: 'TRIAL' }); 
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -29,7 +30,13 @@ export default function Dashboard() {
       });
   }, [router]);
 
+  // Calculate percentage
   const usagePercent = Math.min((usage.apiUsage / usage.usageLimit) * 100, 100);
+
+  // Formatting helper
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat('en-US').format(num);
+  };
 
   return (
     <div className="min-h-screen bg-secondary/30">
@@ -37,6 +44,9 @@ export default function Dashboard() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div className="flex items-center gap-4">
                      <h1 className="text-3xl font-bold">Dashboard</h1>
+                     <div className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded uppercase">
+                        {usage.plan} PLAN
+                     </div>
                      <button 
                         onClick={() => signOut({ callbackUrl: "/" })}
                         className="text-sm text-muted-foreground hover:text-red-500 flex items-center gap-1 bg-white px-3 py-1 rounded border shadow-sm"
@@ -46,22 +56,24 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex gap-4 items-center">
-                    <div className="bg-white px-4 py-2 rounded-lg border flex flex-col min-w-[150px]">
-                        <div className="text-xs text-muted-foreground flex items-center gap-1 font-semibold uppercase">
-                             <Zap className="h-3 w-3 text-yellow-500" fill="currentColor"/> Credits
+                    {/* USAGE CARD */}
+                    <div className="bg-white px-4 py-2 rounded-lg border flex flex-col min-w-[200px]">
+                        <div className="text-xs text-muted-foreground flex items-center justify-between font-semibold uppercase mb-1">
+                             <span className="flex items-center gap-1"><Zap className="h-3 w-3 text-yellow-500" fill="currentColor"/> Words Used</span>
+                             <Link href="/pricing" className="text-primary hover:underline text-[10px]">Upgrade</Link>
                         </div>
                         <div className="flex items-end gap-2">
-                             <span className="font-bold text-lg">{usage.apiUsage}</span>
-                             <span className="text-sm text-muted-foreground">/ {usage.usageLimit}</span>
+                             <span className="font-bold text-lg">{formatNumber(usage.apiUsage)}</span>
+                             <span className="text-sm text-muted-foreground">/ {formatNumber(usage.usageLimit)}</span>
                         </div>
-                        <div className="h-1 w-full bg-secondary mt-1 rounded-full overflow-hidden">
-                             <div className="h-full bg-primary" style={{ width: `${usagePercent}%` }}></div>
+                        <div className="h-1.5 w-full bg-secondary mt-1 rounded-full overflow-hidden">
+                             <div className="h-full bg-primary transition-all duration-500" style={{ width: `${usagePercent}%` }}></div>
                         </div>
                     </div>
-                    {/* UPDATED BUTTON */}
+                    
                     <Link href="/wizard">
                         <button className="bg-primary text-white px-4 py-3 rounded-md flex items-center gap-2 hover:bg-blue-700 h-full shadow-md">
-                            <Wand2 className="h-4 w-4" /> New Content Wizard
+                            <Wand2 className="h-4 w-4" /> New Content
                         </button>
                     </Link>
                 </div>
