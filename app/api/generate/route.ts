@@ -50,7 +50,6 @@ export async function POST(req: Request) {
     let userPrompt = "";
 
     // --- 1. JSON TASKS (Blocking/Fast) ---
-    // We keep these blocking because we need to parse the JSON before showing it to the user.
     if (type === "titles" || type === "outline") {
         if (type === "titles") {
             systemPrompt = "You are an SEO expert. Return ONLY a raw JSON array of 5 catchy, SEO-optimized blog titles. Example: [\"Title 1\", \"Title 2\"]. Do not output any other text.";
@@ -80,7 +79,6 @@ export async function POST(req: Request) {
     }
 
     // --- 2. TEXT TASKS (Streaming) ---
-    // These take time, so we stream them.
     if (type === "article") {
         systemPrompt = `You are an expert writer. Write a comprehensive, long-form blog post (HTML format). Tone: ${tone}.`;
         userPrompt = `Title: ${title}\n\nOutline:\n${JSON.stringify(outline)}\n\nWrite full content.`;
@@ -109,25 +107,17 @@ export async function POST(req: Request) {
     });
 
     // Create a stream that saves to DB on completion
-    const stream = OpenAIStream(response, {
+    // FIX: Cast response to any to resolve Vercel AI SDK vs OpenAI type mismatch
+    const stream = OpenAIStream(response as any, {
         async onCompletion(completion) {
-            // This runs after the stream finishes
             const wordCount = completion.trim().split(/\s+/).length;
             
-            // 1. Update User Usage
             await db.user.update({
                 where: { id: user!.id },
                 data: { apiUsage: { increment: wordCount } }
             });
 
-            // 2. Save Document (if ID provided)
             if (documentId) {
-                // If it's the editor assistant, we usually append, but the API 
-                // isn't aware of previous content easily here. 
-                // For Wizards, we overwrite empty docs. 
-                // For Assistant, frontend handles the appending visually, 
-                // but we might want to save the *result* to DB for persistence?
-                // For simplicity in this clone: We overwrite the doc content for Wizard steps.
                 if (["article", "social", "ads", "copywriting"].includes(type)) {
                      await db.document.update({
                         where: { id: documentId },
