@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, FileText, Loader2, Zap, LogOut } from "lucide-react";
+import { Plus, FileText, Loader2, Zap, LogOut, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 
@@ -28,15 +28,6 @@ export default function Dashboard() {
         setLoading(false);
       });
   }, [router]);
-
-  const createDoc = async () => {
-    const res = await fetch('/api/documents', {
-        method: 'POST',
-        body: JSON.stringify({ title: 'New Article' })
-    });
-    const doc = await res.json();
-    router.push(`/editor/${doc.id}`);
-  };
 
   const usagePercent = Math.min((usage.apiUsage / usage.usageLimit) * 100, 100);
 
@@ -67,9 +58,12 @@ export default function Dashboard() {
                              <div className="h-full bg-primary" style={{ width: `${usagePercent}%` }}></div>
                         </div>
                     </div>
-                    <button onClick={createDoc} className="bg-primary text-white px-4 py-3 rounded-md flex items-center gap-2 hover:bg-blue-700 h-full">
-                        <Plus className="h-4 w-4" /> New Document
-                    </button>
+                    {/* UPDATED BUTTON: Links to Wizard */}
+                    <Link href="/wizard">
+                        <button className="bg-primary text-white px-4 py-3 rounded-md flex items-center gap-2 hover:bg-blue-700 h-full shadow-md">
+                            <Sparkles className="h-4 w-4" /> AI Article Wizard
+                        </button>
+                    </Link>
                 </div>
             </div>
 
@@ -79,7 +73,9 @@ export default function Dashboard() {
                 <div className="text-center py-20 bg-white rounded-xl border">
                     <h2 className="text-xl font-semibold mb-2">No documents yet</h2>
                     <p className="text-muted-foreground mb-4">Start writing your next masterpiece.</p>
-                    <button onClick={createDoc} className="text-primary font-medium hover:underline">Create one now</button>
+                    <Link href="/wizard">
+                        <button className="text-primary font-medium hover:underline">Start AI Wizard</button>
+                    </Link>
                 </div>
             ) : (
                 <div className="grid md:grid-cols-3 gap-6">
