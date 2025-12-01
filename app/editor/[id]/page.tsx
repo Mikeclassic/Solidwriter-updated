@@ -1,8 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Save, Sparkles, Loader2, AlertTriangle, Bot } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Loader2, Bot } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export default function Editor({ params }: { params: { id: string } }) {
   const [content, setContent] = useState("");
@@ -11,7 +10,6 @@ export default function Editor({ params }: { params: { id: string } }) {
   const [generating, setGenerating] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [showAi, setShowAi] = useState(false);
-  const [credits, setCredits] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   
   useEffect(() => {
@@ -20,12 +18,6 @@ export default function Editor({ params }: { params: { id: string } }) {
       .then(data => {
         setContent(data.content || "");
         setTitle(data.title || "");
-      });
-
-    fetch('/api/user/usage')
-      .then(res => res.json())
-      .then(data => {
-        if(data) setCredits(data.usageLimit - data.apiUsage);
       });
   }, [params.id]);
 
@@ -49,46 +41,34 @@ export default function Editor({ params }: { params: { id: string } }) {
             body: JSON.stringify({ prompt, tone: 'Professional', documentId: params.id })
         });
 
-        if (res.status === 403) { 
-            setErrorMsg("Limit Reached! Upgrade to continue."); 
-            setGenerating(false); 
-            return; 
-        }
-        
-        if (!res.ok) throw new Error("Generation failed");
-        
-        // STREAMING LOGIC
-        // We append a double newline to separate new content
-        setContent((prev) => prev + "\n\n");
-        
+        if (res.status === 403) { setErrorMsg("Limit Reached!"); setGenerating(false); return; }
+        if (!res.ok) throw new Error("Failed");
+
+        // Streaming Reader
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
-        
-        if (!reader) return;
+        setContent(prev => prev + "\n\n"); // Add spacing
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            setContent((prev) => prev + chunk);
+        if (reader) {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                setContent(prev => prev + chunk);
+            }
         }
-
         setShowAi(false);
         setPrompt("");
-        
-    } catch (e) { 
-        setErrorMsg("Failed to generate content."); 
-    } finally { 
-        setGenerating(false); 
-    }
+    } catch (e) { setErrorMsg("Error generating."); } 
+    finally { setGenerating(false); }
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
+    <div className="flex flex-col h-screen overflow-hidden bg-background font-sans">
       <header className="h-16 border-b flex items-center justify-between px-4 md:px-6 bg-card shrink-0">
         <div className="flex items-center gap-4">
             <Link href="/dashboard" className="text-muted-foreground hover:text-foreground"><ArrowLeft className="h-5 w-5"/></Link>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className="font-semibold text-lg bg-transparent focus:outline-none w-full md:w-auto" placeholder="Untitled Document"/>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} className="font-semibold text-lg bg-transparent focus:outline-none w-full md:w-auto text-foreground" placeholder="Untitled Document"/>
         </div>
         <div className="flex items-center gap-2">
             <button onClick={() => setShowAi(!showAi)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors text-sm">
@@ -116,12 +96,11 @@ export default function Editor({ params }: { params: { id: string } }) {
                     <h3 className="font-bold flex items-center gap-2"><Bot className="h-5 w-5 text-primary"/> AI Assistant</h3>
                     <button onClick={() => setShowAi(false)} className="md:hidden text-muted-foreground">✕</button>
                 </div>
-                
                 {errorMsg && <div className="mb-4 p-3 bg-destructive/10 text-destructive text-sm rounded-lg">{errorMsg}</div>}
                 <div className="space-y-4 flex-1 flex flex-col">
                     <textarea 
                         className="w-full border rounded-lg p-3 text-sm bg-background flex-1 md:flex-none md:h-40 resize-none" 
-                        placeholder="e.g. Write a paragraph about coffee..." 
+                        placeholder="e.g. Expand on the second paragraph..." 
                         value={prompt} 
                         onChange={(e) => setPrompt(e.target.value)}
                     />
