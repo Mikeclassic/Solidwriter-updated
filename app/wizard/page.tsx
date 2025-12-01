@@ -72,8 +72,16 @@ export default function WizardPage() {
     e.preventDefault();
     setLoading(true);
     try {
-        const titleMap = { social: "Social Post", ads: "Ad Copy", copywriting: "Marketing Copy" };
-        const displayTitle = `${titleMap[mode!]}: ${input.topic.substring(0, 20)}...`;
+        // FIX: Explicitly type titleMap so TypeScript accepts 'mode' as a key
+        const titleMap: Record<string, string> = { 
+            social: "Social Post", 
+            ads: "Ad Copy", 
+            copywriting: "Marketing Copy" 
+        };
+        
+        // Fallback to "Content" if mode is somehow mismatching, though logic prevents it
+        const safeTitle = titleMap[mode!] || "Content"; 
+        const displayTitle = `${safeTitle}: ${input.topic.substring(0, 20)}...`;
 
         const docRes = await fetch('/api/documents', { method: 'POST', body: JSON.stringify({ title: displayTitle }) });
         const doc = await docRes.json();
