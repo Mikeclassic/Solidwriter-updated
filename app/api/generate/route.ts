@@ -3,17 +3,44 @@ import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+// Allow Vercel functions to run longer
+export const maxDuration = 60; 
+
+function cleanJson(text: string) {
+    // Remove Markdown code blocks and trim
+    let cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    
+    // Find the first '[' and the last ']' to extract just the array
+    const firstBracket = cleaned.indexOf('[');
+    const lastBracket = cleaned.lastIndexOf(']');
+    
+    if (firstBracket !== -1 && lastBracket !== -1) {
+        cleaned = cleaned.substring(firstBracket, lastBracket + 1);
+    }
+    
+    return cleaned;
+}
+
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) return new NextResponse("Unauthorized", { status: 401 });
 
-    const user = await db.user.findUnique({ where: { email: session.user.email } });
+    let user = await db.user.findUnique({ where: { email: session.user.email } });
     if (!user) return new NextResponse("User not found", { status: 404 });
     
-    // Check Limits (Word Count)
+    // --- FIX: AUTO-UPDATE LEGACY USERS ---
+    // If user has the old limit (e.g., 10), bump them to the new 25k word limit instantly
+    if (user.usageLimit < 1000) {
+        user = await db.user.update({
+            where: { id: user.id },
+            data: { usageLimit: 25000, plan: "TRIAL" }
+        });
+    }
+
+    // Check Limits
     if (user.apiUsage >= user.usageLimit) {
-        return new NextResponse("Word Limit Reached. Please upgrade your plan.", { status: 403 });
+        return new NextResponse("Word Limit Reached. Please upgrade.", { status: 403 });
     }
 
     const body = await req.json();
@@ -22,16 +49,12 @@ export async function POST(req: Request) {
     let systemPrompt = "";
     let userPrompt = "";
 
-    // ... (Keep existing prompt logic for Blog, Social, Ads, Copywriting) ...
-    // Note: I am abbreviating the prompt logic here to save space, 
-    // KEEP THE PROMPT LOGIC FROM THE PREVIOUS STEP EXACTLY AS IS.
-    
-    // --- 1. BLOG ---
+    // --- PROMPTS ---
     if (type === "titles") {
-        systemPrompt = "You are an SEO expert. Return ONLY a raw JSON array of 5 catchy, SEO-optimized blog titles.";
+        systemPrompt = "You are an SEO expert. Return ONLY a raw JSON array of 5 catchy, SEO-optimized blog titles. Example: [\"Title 1\", \"Title 2\"]. Do not output any other text.";
         userPrompt = `Topic: ${topic}. Keywords: ${keywords}. Tone: ${tone}.`;
     } else if (type === "outline") {
-        systemPrompt = "You are a content strategist. Return ONLY a raw JSON array of 6-8 distinct section headers (H2s).";
+        systemPrompt = "You are a content strategist. Return ONLY a raw JSON array of 6-8 distinct section headers (H2s). Example: [\"Intro\", \"Point 1\"]. Do not output any other text.";
         userPrompt = `Title: ${title}. Tone: ${tone}. Keywords: ${keywords}`;
     } else if (type === "article") {
         systemPrompt = `You are an expert writer. Write a comprehensive, long-form blog post (HTML format). Tone: ${tone}.`;
@@ -70,27 +93,20 @@ export async function POST(req: Request) {
 
     if (!response.ok) {
         const error = await response.text();
-        return new NextResponse(`AI Error: ${error}`, { status: 500 });
+        console.error("OpenRouter Error:", error);
+        return new NextResponse(`AI Error: ${response.statusText}`, { status: 500 });
     }
 
     const data = await response.json();
     let generatedContent = data.choices[0]?.message?.content || "";
 
+    // Robust JSON Cleanup for steps that require it
     if (type === "titles" || type === "outline") {
-        generatedContent = generatedContent.replace(/```json/g, "").replace(/```/g, "").trim();
+        generatedContent = cleanJson(generatedContent);
     }
 
-    // --- WORD COUNT CALCULATION ---
-    // Estimate words by splitting spaces.
+    // Word Count
     const wordCount = generatedContent.trim().split(/\s+/).length;
-
-    // Check if this specific generation puts them over the limit
-    if (user.apiUsage + wordCount > user.usageLimit) {
-        // You might decide to allow it to finish or block. 
-        // Blocking strict:
-        // return new NextResponse("Insufficient word balance.", { status: 403 });
-        // Allowing it but capping next time is friendlier.
-    }
 
     if (["article", "social", "ads", "copywriting"].includes(type)) {
         if (documentId) {
@@ -99,7 +115,6 @@ export async function POST(req: Request) {
                 data: { content: generatedContent }
             });
         }
-        // Increment by WORD COUNT
         await db.user.update({
             where: { id: user.id },
             data: { apiUsage: { increment: wordCount } }
@@ -108,7 +123,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ result: generatedContent, wordsUsed: wordCount });
 
-  } catch (error) {
-    return new NextResponse("Internal Error", { status: 500 });
+  } catch (error: any) {
+    console.error("[GENERATE_ERROR]", error);
+    return new NextResponse(error.message || "Internal Error", { status: 500 });
   }
 }
