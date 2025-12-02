@@ -7,7 +7,6 @@ import { OpenAIStream, StreamingTextResponse } from "ai";
 
 export const maxDuration = 60;
 
-// Initialize OpenAI client pointing to OpenRouter
 const openai = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -31,7 +30,6 @@ export async function POST(req: Request) {
     let user = await db.user.findUnique({ where: { email: session.user.email } });
     if (!user) return new NextResponse("User not found", { status: 404 });
     
-    // Auto-migrate legacy users
     if (user.usageLimit < 1000) {
         user = await db.user.update({
             where: { id: user.id },
@@ -55,7 +53,7 @@ export async function POST(req: Request) {
             systemPrompt = "You are an SEO expert. Return ONLY a raw JSON array of 5 catchy, SEO-optimized blog titles. Example: [\"Title 1\", \"Title 2\"]. Do not output any other text.";
             userPrompt = `Topic: ${topic}. Keywords: ${keywords}. Tone: ${tone}.`;
         } else {
-            systemPrompt = "You are a content strategist. Return ONLY a raw JSON array of 6-8 distinct section headers (H2s). Example: [\"Intro\", \"Point 1\"]. Do not output any other text.";
+            systemPrompt = "You are a content strategist. Return ONLY a raw JSON array of 6-8 distinct section headers. Example: [\"Intro\", \"Point 1\"]. Do not output any other text.";
             userPrompt = `Title: ${title}. Tone: ${tone}. Keywords: ${keywords}`;
         }
 
@@ -78,21 +76,24 @@ export async function POST(req: Request) {
         return NextResponse.json({ result: content });
     }
 
-    // --- 2. TEXT TASKS (Streaming) ---
+    // --- 2. STREAMING TASKS (CLEAN HTML ENFORCED) ---
+    // Added specific instructions to avoid Markdown (#, *) and use HTML tags instead.
+    const cleanInstruction = "Output format: Clean HTML. Use <h2> for headers, <p> for paragraphs, <ul>/<li> for lists, and <strong> for emphasis. Do NOT use Markdown symbols like #, *, or **. Do not wrap the response in ```html code blocks.";
+
     if (type === "article") {
-        systemPrompt = `You are an expert writer. Write a comprehensive, long-form blog post (HTML format). Tone: ${tone}.`;
-        userPrompt = `Title: ${title}\n\nOutline:\n${JSON.stringify(outline)}\n\nWrite full content.`;
+        systemPrompt = `You are an expert writer. Write a comprehensive, long-form blog post. Tone: ${tone}. ${cleanInstruction}`;
+        userPrompt = `Title: ${title}\n\nOutline Structure:\n${JSON.stringify(outline)}\n\nWrite the full article now.`;
     } else if (type === "social") {
-        systemPrompt = `You are a social media expert for ${platform}. Write 3 distinct post options. Tone: ${tone}.`;
+        systemPrompt = `You are a social media expert for ${platform}. Write 3 distinct post options. Tone: ${tone}. ${cleanInstruction}`;
         userPrompt = `Topic: ${topic}\nKeywords: ${keywords}`;
     } else if (type === "ads") {
-        systemPrompt = `You are a PPC expert for ${platform} Ads. Write 3 variations. Tone: ${tone}.`;
+        systemPrompt = `You are a PPC expert for ${platform} Ads. Write 3 variations. Tone: ${tone}. ${cleanInstruction}`;
         userPrompt = `Product: ${topic}\nTarget: ${keywords}`;
     } else if (type === "copywriting") {
-        systemPrompt = `Master copywriter using ${framework}. Tone: ${tone}.`;
+        systemPrompt = `Master copywriter using the ${framework} framework. Tone: ${tone}. ${cleanInstruction}`;
         userPrompt = `Topic: ${topic}\nContext: ${keywords}`;
     } else {
-        systemPrompt = `Writing assistant. Tone: ${tone || "Professional"}.`;
+        systemPrompt = `You are a professional writing assistant. Tone: ${tone || "Professional"}. ${cleanInstruction}`;
         userPrompt = body.prompt;
     }
 
@@ -106,8 +107,6 @@ export async function POST(req: Request) {
         temperature: 0.7,
     });
 
-    // Create a stream that saves to DB on completion
-    // FIX: Cast response to any to resolve Vercel AI SDK vs OpenAI type mismatch
     const stream = OpenAIStream(response as any, {
         async onCompletion(completion) {
             const wordCount = completion.trim().split(/\s+/).length;
