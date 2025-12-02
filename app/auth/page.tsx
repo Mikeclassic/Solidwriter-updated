@@ -3,6 +3,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock, User, AlertCircle, Bot } from "lucide-react";
+import Link from "next/link"; // Added Import
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -54,8 +55,8 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 font-sans">
+      <div className="max-w-md w-full bg-card rounded-2xl shadow-lg p-8 border">
         <div className="flex justify-center mb-6 text-primary">
           <Bot className="h-10 w-10" />
         </div>
@@ -64,7 +65,7 @@ export default function AuthPage() {
         </h2>
 
         {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4 flex items-center gap-2 text-sm border border-red-200">
+            <div className="bg-destructive/10 text-destructive p-3 rounded-lg mb-4 flex items-center gap-2 text-sm border border-destructive/20">
                 <AlertCircle className="h-4 w-4"/> {error}
             </div>
         )}
@@ -74,47 +75,33 @@ export default function AuthPage() {
             <div>
               <label className="text-sm font-medium">Name</label>
               <div className="relative mt-1">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                <input
-                  required
-                  className="w-full pl-10 pr-3 py-2 border rounded-md"
-                  value={data.name}
-                  onChange={(e) => setData({...data, name: e.target.value})}
-                />
+                <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input required className="w-full pl-10 pr-3 py-2 border rounded-lg bg-background" value={data.name} onChange={(e) => setData({...data, name: e.target.value})}/>
               </div>
             </div>
           )}
           <div>
             <label className="text-sm font-medium">Email</label>
             <div className="relative mt-1">
-              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <input
-                type="email"
-                required
-                className="w-full pl-10 pr-3 py-2 border rounded-md"
-                value={data.email}
-                onChange={(e) => setData({...data, email: e.target.value})}
-              />
+              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input type="email" required className="w-full pl-10 pr-3 py-2 border rounded-lg bg-background" value={data.email} onChange={(e) => setData({...data, email: e.target.value})}/>
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium">Password</label>
-            <div className="relative mt-1">
-              <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <input
-                type="password"
-                required
-                className="w-full pl-10 pr-3 py-2 border rounded-md"
-                value={data.password}
-                onChange={(e) => setData({...data, password: e.target.value})}
-              />
+            <div className="flex justify-between items-center mb-1">
+                <label className="text-sm font-medium">Password</label>
+                {/* NEW LINK */}
+                <Link href="/forgot-password" class="text-xs text-primary hover:underline">
+                    Forgot password?
+                </Link>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <input type="password" required className="w-full pl-10 pr-3 py-2 border rounded-lg bg-background" value={data.password} onChange={(e) => setData({...data, password: e.target.value})}/>
             </div>
           </div>
 
-          <button
-            disabled={loading}
-            className="w-full bg-primary text-white py-2 rounded-md font-medium hover:bg-blue-700 flex justify-center gap-2"
-          >
+          <button disabled={loading} className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-medium hover:opacity-90 flex justify-center gap-2">
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
             {isLogin ? "Sign In" : "Register"}
           </button>
