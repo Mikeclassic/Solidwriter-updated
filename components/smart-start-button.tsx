@@ -20,7 +20,6 @@ export default function SmartStartButton({
   const handleClick = async () => {
     setLoading(true);
     try {
-      // Check session status dynamically
       const res = await fetch("/api/auth/session");
       const session = await res.json();
 
@@ -32,7 +31,7 @@ export default function SmartStartButton({
     } catch (error) {
       router.push("/auth");
     } finally {
-      // Keep loading until redirect happens
+      // Keep loading to prevent flicker
     }
   };
 
@@ -42,11 +41,15 @@ export default function SmartStartButton({
     outline: "border-2 border-primary text-primary hover:bg-primary/5"
   };
 
+  // Construct class string safely
+  const variantStyle = variant === 'outline' ? variants.outline : variants.primary;
+  const combinedClassName = `${baseStyles} ${variantStyle} ${className} disabled:opacity-70 disabled:cursor-not-allowed`;
+
   return (
     <button 
       onClick={handleClick} 
       disabled={loading}
-      className={`${baseStyles} ${variants[variant]} ${className} disabled:opacity-70 disabled:cursor-not-allowed`}
+      className={combinedClassName}
     >
       {loading ? <Loader2 className="h-5 w-5 animate-spin"/> : text}
       {!loading && <ArrowRight className="h-5 w-5"/>}
