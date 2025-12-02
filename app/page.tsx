@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { Check, Bot, PenTool, ChevronDown, ChevronUp, Copy, RefreshCw, Star, PlayCircle, ArrowRight } from "lucide-react";
+import { Check, Bot, PenTool, ChevronDown, ChevronUp, Copy, RefreshCw, Star, PlayCircle, ArrowRight, Menu, X, Zap, Shield, Sparkles, LayoutTemplate, Globe, Cpu } from "lucide-react";
 import SmartStartButton from "@/components/smart-start-button";
 
 // TESTIMONIALS
@@ -36,6 +36,42 @@ const DEMO_STEPS = [
   { id: 5, label: "Final Content", desc: "Ready to publish." }
 ];
 
+// PRICING PLANS
+const PRICING_PLANS = [
+  { 
+    name: "Basic", 
+    price: "$12", 
+    period: "/month", 
+    desc: "Perfect for individuals and small blogs.",
+    features: ["25,000 words/month", "All AI Writing Tools", "30+ Templates", "Standard Support"] 
+  },
+  { 
+    name: "Professional", 
+    price: "$24", 
+    period: "/month", 
+    desc: "Ideal for professional writers and small teams.",
+    popular: true,
+    features: ["100,000 words/month", "Everything in Basic", "SEO Optimization Mode", "Priority Support", "Plagiarism Checker"] 
+  },
+  { 
+    name: "Business", 
+    price: "$60", 
+    period: "/month", 
+    desc: "Complete solution for scaling content.",
+    features: ["500,000 words/month", "Everything in Professional", "Team Collaboration", "API Access", "Custom Brand Voice"] 
+  }
+];
+
+// FEATURES LIST
+const FEATURES_LIST = [
+  { icon: Sparkles, title: "AI Writing Assistant", desc: "Generate high-quality blog posts, emails, and social media captions in seconds." },
+  { icon: Check, title: "Grammar Checker", desc: "Built-in advanced grammar and style checking to ensure error-free content." },
+  { icon: LayoutTemplate, title: "Content Organization", desc: "Hierarchical content management system to keep your projects structured." },
+  { icon: Globe, title: "Multilingual Support", desc: "Create content in over 25 languages with native-level fluency." },
+  { icon: Shield, title: "Plagiarism Free", desc: "All content is unique and checked against billions of web pages." },
+  { icon: Zap, title: "SEO Optimization", desc: "Integrated SEO tools to help your content rank higher on search engines." },
+];
+
 // Animation Data
 const STEP_1_TOPIC = "Budget travel guide for beginners";
 const STEP_1_KEYWORDS = "money saving, hostels, flights";
@@ -46,6 +82,9 @@ export default function LandingPage() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  
+  // Mobile Menu State
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Animation States
   const [topicInput, setTopicInput] = useState("");
@@ -76,8 +115,6 @@ export default function LandingPage() {
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isAutoPlaying) {
-      // Step 1 needs time to type inputs (approx 4s)
-      // Step 4 needs time to write text (approx 6s)
       let duration = 3500;
       if (activeStep === 1) duration = 4500;
       if (activeStep === 4) duration = 6500;
@@ -115,10 +152,7 @@ export default function LandingPage() {
           setTopicInput(STEP_1_TOPIC.slice(0, i));
           await new Promise(r => setTimeout(r, 40));
         }
-        
-        // Pause
         await new Promise(r => setTimeout(r, 400));
-
         // Type Keywords
         for (let i = 0; i <= STEP_1_KEYWORDS.length; i++) {
           if (isCancelled) return;
@@ -126,7 +160,6 @@ export default function LandingPage() {
           await new Promise(r => setTimeout(r, 40));
         }
       };
-
       typeInputs();
       return () => { isCancelled = true; };
     }
@@ -138,7 +171,6 @@ export default function LandingPage() {
       setGeneratedText("");
       const words = STEP_4_TEXT.split(" ");
       let i = 0;
-      
       const typingInterval = setInterval(() => {
         if (i < words.length) {
           setGeneratedText(prev => prev + (prev ? " " : "") + words[i]);
@@ -147,7 +179,6 @@ export default function LandingPage() {
           clearInterval(typingInterval);
         }
       }, 70);
-      
       return () => clearInterval(typingInterval);
     }
   }, [activeStep]);
@@ -184,24 +215,49 @@ export default function LandingPage() {
       
       {/* --- HEADER --- */}
       <header className="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
-        <div className="flex items-center gap-2 font-bold text-xl md:text-2xl text-slate-900 tracking-tight">
+        <div className="flex items-center gap-2 font-bold text-xl md:text-2xl text-slate-900 tracking-tight z-50">
           <div className="text-blue-600">
             <Bot className="h-6 w-6 md:h-8 md:w-8" />
           </div>
           Solidwriter
         </div>
+
+        {/* Desktop Nav */}
         <nav className="hidden md:flex gap-8 text-sm font-semibold text-slate-600">
           <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
-          <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How It Works</a>
           <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
+          <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How It Works</a>
           <a href="#faq" className="hover:text-blue-600 transition-colors">FAQ</a>
         </nav>
-        <div className="flex gap-2 md:gap-4 items-center">
-          <Link href="/auth" className="hidden sm:block">
+
+        {/* Desktop Buttons */}
+        <div className="hidden md:flex gap-2 md:gap-4 items-center">
+          <Link href="/auth">
             <button className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Log in</button>
           </Link>
           <SmartStartButton text="Try Free" className="!px-4 !py-2 !text-xs md:!text-sm !shadow-none !bg-blue-600 !text-white hover:!bg-blue-700 !rounded-lg" />
         </div>
+
+        {/* Mobile Menu Toggle */}
+        <div className="md:hidden z-50 flex items-center gap-4">
+            <Link href="/auth" className="text-sm font-bold text-slate-600">Log in</Link>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-slate-600">
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+            <div className="absolute top-full left-0 w-full bg-white border-b border-slate-100 shadow-xl p-4 flex flex-col gap-4 md:hidden animate-in slide-in-from-top-2">
+                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">Features</a>
+                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">Pricing</a>
+                <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">How It Works</a>
+                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">FAQ</a>
+                <div className="border-t border-slate-100 pt-4 mt-2">
+                     <SmartStartButton text="Try Free Now" className="w-full justify-center !bg-blue-600 !text-white hover:!bg-blue-700 !rounded-lg" />
+                </div>
+            </div>
+        )}
       </header>
 
       {/* --- HERO SECTION --- */}
@@ -225,17 +281,71 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* --- FEATURES SECTION --- */}
+      <section id="features" className="py-24 px-6 bg-slate-50">
+        <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Powerful Features</h2>
+                <p className="text-lg text-slate-500 max-w-2xl mx-auto">Everything you need to create amazing content in one place.</p>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {FEATURES_LIST.map((feature, idx) => (
+                    <div key={idx} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6">
+                            <feature.icon className="h-6 w-6" />
+                        </div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
+                        <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+      </section>
+
+      {/* --- PRICING SECTION --- */}
+      <section id="pricing" className="py-24 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Simple Pricing</h2>
+                <p className="text-lg text-slate-500">Start your 7-day free trial on any plan. Cancel anytime.</p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+                {PRICING_PLANS.map((plan, idx) => (
+                    <div key={idx} className={`relative p-8 rounded-3xl border ${plan.popular ? 'border-blue-600 shadow-xl scale-105 bg-white z-10' : 'border-slate-200 bg-slate-50/50'}`}>
+                        {plan.popular && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Most Popular</div>}
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
+                        <div className="flex items-baseline gap-1 mb-4">
+                            <span className="text-4xl font-extrabold text-slate-900">{plan.price}</span>
+                            <span className="text-slate-500 font-medium">{plan.period}</span>
+                        </div>
+                        <p className="text-sm text-slate-500 mb-8 h-10">{plan.desc}</p>
+                        <ul className="space-y-4 mb-8">
+                            {plan.features.map((feat, i) => (
+                                <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700">
+                                    <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                    {feat}
+                                </li>
+                            ))}
+                        </ul>
+                        <button className={`w-full py-3 rounded-xl font-bold transition-all ${plan.popular ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg' : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-600 hover:text-blue-600'}`}>
+                            Choose {plan.name}
+                        </button>
+                    </div>
+                ))}
+            </div>
+        </div>
+      </section>
+
       {/* --- INTERACTIVE DEMO --- */}
-      <section id="how-it-works" className="py-16 px-4 bg-slate-50/50" ref={demoRef}>
-        <div className="text-center mb-8">
+      <section id="how-it-works" className="py-24 px-4 bg-slate-50" ref={demoRef}>
+        <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-bold mb-4 animate-bounce">
             <PlayCircle className="h-4 w-4"/> Watch Demo Below
           </div>
-          <h2 className="text-2xl md:text-4xl font-bold text-slate-900">See Solidwriter in Action</h2>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900">See Solidwriter in Action</h2>
         </div>
 
         <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden ring-1 ring-slate-100">
-          
           {/* Stepper Navigation */}
           <div 
             ref={stepperRef}
@@ -263,23 +373,18 @@ export default function LandingPage() {
 
           {/* Dynamic Content */}
           <div className="p-6 md:p-12 min-h-[400px] md:min-h-[500px] bg-white flex flex-col justify-between">
-            
-            {/* Steps Content Area */}
             <div className="flex-1 flex flex-col justify-center">
               {activeStep === 1 && (
                 <div className="max-w-3xl mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                   {/* TOPIC INPUT with Typing Animation */}
                    <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-900">Topic</label>
                       <div className="w-full h-14 bg-slate-50 border border-slate-200 rounded-lg p-4 text-slate-700 shadow-sm flex items-center">
                         {topicInput}
-                        {/* Cursor only shows if we are actively typing topic */}
                         {topicInput.length < STEP_1_TOPIC.length && (
                           <span className="w-0.5 h-5 bg-blue-600 animate-pulse ml-0.5"></span>
                         )}
                       </div>
                    </div>
-                   
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div className="space-y-2">
                          <label className="text-sm font-bold text-slate-900">Language</label>
@@ -287,20 +392,16 @@ export default function LandingPage() {
                             English (US) <ChevronDown className="h-4 w-4 opacity-50"/>
                          </div>
                       </div>
-                      
-                      {/* KEYWORDS INPUT with Typing Animation */}
                       <div className="space-y-2">
                          <label className="text-sm font-bold text-slate-900">Keywords</label>
                          <div className="w-full h-12 bg-slate-50 border border-slate-200 rounded-lg px-4 flex items-center text-slate-600 shadow-sm">
                             {keywordInput}
-                            {/* Cursor shows if topic finished and we are typing keywords */}
                             {topicInput.length >= STEP_1_TOPIC.length && keywordInput.length < STEP_1_KEYWORDS.length && (
                                <span className="w-0.5 h-4 bg-blue-600 animate-pulse ml-0.5"></span>
                             )}
                          </div>
                       </div>
                    </div>
-                   
                    <div className="flex justify-end pt-4">
                       <button className={`px-6 py-3 rounded-lg text-sm font-bold shadow-md transition-all ${keywordInput.length === STEP_1_KEYWORDS.length ? 'bg-slate-900 text-white hover:scale-105' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
                         Generate Titles
@@ -349,7 +450,6 @@ export default function LandingPage() {
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">AI Writing...</span>
                      </div>
                      <h1 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900">How to Travel the World on a Shoestring Budget</h1>
-                     {/* STREAMING TEXT ANIMATION (Word by Word) */}
                      <div className="text-slate-600 leading-relaxed text-sm md:text-base font-medium">
                         {generatedText}
                         <span className="inline-block w-1.5 h-4 bg-blue-600 ml-1 animate-pulse align-middle"></span>
@@ -387,7 +487,6 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Next Step Button */}
             <div className="mt-8 flex justify-center border-t border-slate-100 pt-6">
               <button 
                 onClick={handleNextStep}
@@ -397,13 +496,12 @@ export default function LandingPage() {
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform"/>
               </button>
             </div>
-
           </div>
         </div>
       </section>
 
       {/* --- TESTIMONIALS --- */}
-      <section className="py-24 bg-slate-50 overflow-hidden">
+      <section className="py-24 bg-white overflow-hidden">
         <div className="text-center mb-12 px-6">
           <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4">Trusted By <span className="text-blue-600">Thousands</span></h2>
           <p className="text-slate-500">See what creators are saying about Solidwriter.</p>
@@ -436,7 +534,7 @@ export default function LandingPage() {
       </section>
 
       {/* --- FAQ --- */}
-      <section id="faq" className="py-24 px-6 bg-white">
+      <section id="faq" className="py-24 px-6 bg-slate-50">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-extrabold text-center text-slate-900 mb-12">Frequently Asked <span className="text-blue-600">Questions</span></h2>
           <div className="space-y-4">
