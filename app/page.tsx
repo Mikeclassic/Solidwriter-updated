@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { Check, Bot, PenTool, ChevronDown, ChevronUp, Copy, RefreshCw, Star, PlayCircle, ArrowRight } from "lucide-react";
 import SmartStartButton from "@/components/smart-start-button";
 
-// TESTIMONIALS (Duplicated for seamless infinite loop)
+// TESTIMONIALS
 const RAW_TESTIMONIALS = [
   { name: "Sarah Johnson", role: "Content Manager", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop", text: "Solidwriter cut my workflow in half. Ideally suited for agencies." },
   { name: "Mark Williams", role: "SEO Specialist", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop", text: "The ranking capability of these articles is unmatched. A game changer." },
@@ -36,8 +36,10 @@ const DEMO_STEPS = [
   { id: 5, label: "Final Content", desc: "Ready to publish." }
 ];
 
-// Text to stream in Step 4
-const STREAMING_TEXT = "Traveling the world is a dream for many, but the misconception that it requires a massive bank account often holds people back. In this guide, we'll uncover the secrets of budget travel. First, let's talk about flights. Being flexible with your dates can save you hundreds...";
+// Animation Data
+const STEP_1_TOPIC = "Budget travel guide for beginners";
+const STEP_1_KEYWORDS = "money saving, hostels, flights";
+const STEP_4_TEXT = "Traveling the world is a dream for many, but the misconception that it requires a massive bank account often holds people back. In this guide, we'll uncover the secrets of budget travel. First, let's talk about flights. Being flexible with your dates can save you hundreds...";
 
 export default function LandingPage() {
   const [activeStep, setActiveStep] = useState(1);
@@ -45,8 +47,10 @@ export default function LandingPage() {
   const [hasStarted, setHasStarted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   
-  // Streaming text state
-  const [displayedText, setDisplayedText] = useState("");
+  // Animation States
+  const [topicInput, setTopicInput] = useState("");
+  const [keywordInput, setKeywordInput] = useState("");
+  const [generatedText, setGeneratedText] = useState("");
 
   const demoRef = useRef<HTMLDivElement>(null);
   const stepperRef = useRef<HTMLDivElement>(null); 
@@ -68,12 +72,16 @@ export default function LandingPage() {
     return () => { if (demoRef.current) observer.unobserve(demoRef.current); };
   }, [hasStarted]);
 
-  // Demo auto-play interval
+  // Demo auto-play interval manager
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isAutoPlaying) {
-      // Longer duration for step 4 to allow reading text
-      const duration = activeStep === 4 ? 6000 : 3500;
+      // Step 1 needs time to type inputs (approx 4s)
+      // Step 4 needs time to write text (approx 6s)
+      let duration = 3500;
+      if (activeStep === 1) duration = 4500;
+      if (activeStep === 4) duration = 6500;
+
       interval = setInterval(() => {
         setActiveStep((prev) => (prev === 5 ? 1 : prev + 1));
       }, duration);
@@ -81,38 +89,64 @@ export default function LandingPage() {
     return () => clearInterval(interval);
   }, [isAutoPlaying, activeStep]);
 
-  // --- FIXED: Horizontal Scroll Sync (No Page Jump) ---
+  // --- Horizontal Scroll Sync ---
   useEffect(() => {
     if (stepperRef.current) {
       const activeBtn = document.getElementById(`step-btn-${activeStep}`);
       if (activeBtn) {
         const container = stepperRef.current;
-        // Calculate the center position relative to the container
         const scrollLeft = activeBtn.offsetLeft - (container.clientWidth / 2) + (activeBtn.clientWidth / 2);
-        
-        container.scrollTo({
-          left: scrollLeft,
-          behavior: 'smooth'
-        });
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
       }
     }
   }, [activeStep]);
 
-  // --- NEW: Streaming Text Animation for Step 4 ---
+  // --- ANIMATION: Step 1 (Typing Inputs) ---
+  useEffect(() => {
+    if (activeStep === 1) {
+      setTopicInput("");
+      setKeywordInput("");
+      let isCancelled = false;
+
+      const typeInputs = async () => {
+        // Type Topic
+        for (let i = 0; i <= STEP_1_TOPIC.length; i++) {
+          if (isCancelled) return;
+          setTopicInput(STEP_1_TOPIC.slice(0, i));
+          await new Promise(r => setTimeout(r, 40));
+        }
+        
+        // Pause
+        await new Promise(r => setTimeout(r, 400));
+
+        // Type Keywords
+        for (let i = 0; i <= STEP_1_KEYWORDS.length; i++) {
+          if (isCancelled) return;
+          setKeywordInput(STEP_1_KEYWORDS.slice(0, i));
+          await new Promise(r => setTimeout(r, 40));
+        }
+      };
+
+      typeInputs();
+      return () => { isCancelled = true; };
+    }
+  }, [activeStep]);
+
+  // --- ANIMATION: Step 4 (AI Generation) ---
   useEffect(() => {
     if (activeStep === 4) {
-      setDisplayedText("");
-      const words = STREAMING_TEXT.split(" ");
+      setGeneratedText("");
+      const words = STEP_4_TEXT.split(" ");
       let i = 0;
       
       const typingInterval = setInterval(() => {
         if (i < words.length) {
-          setDisplayedText(prev => prev + (prev ? " " : "") + words[i]);
+          setGeneratedText(prev => prev + (prev ? " " : "") + words[i]);
           i++;
         } else {
           clearInterval(typingInterval);
         }
-      }, 70); // Adjust speed here (lower = faster)
+      }, 70);
       
       return () => clearInterval(typingInterval);
     }
@@ -234,13 +268,18 @@ export default function LandingPage() {
             <div className="flex-1 flex flex-col justify-center">
               {activeStep === 1 && (
                 <div className="max-w-3xl mx-auto w-full space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                   {/* TOPIC INPUT with Typing Animation */}
                    <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-900">Topic</label>
                       <div className="w-full h-14 bg-slate-50 border border-slate-200 rounded-lg p-4 text-slate-700 shadow-sm flex items-center">
-                        Budget travel guide for beginners
-                        <span className="w-0.5 h-5 bg-blue-600 animate-pulse ml-0.5"></span>
+                        {topicInput}
+                        {/* Cursor only shows if we are actively typing topic */}
+                        {topicInput.length < STEP_1_TOPIC.length && (
+                          <span className="w-0.5 h-5 bg-blue-600 animate-pulse ml-0.5"></span>
+                        )}
                       </div>
                    </div>
+                   
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div className="space-y-2">
                          <label className="text-sm font-bold text-slate-900">Language</label>
@@ -248,15 +287,24 @@ export default function LandingPage() {
                             English (US) <ChevronDown className="h-4 w-4 opacity-50"/>
                          </div>
                       </div>
+                      
+                      {/* KEYWORDS INPUT with Typing Animation */}
                       <div className="space-y-2">
                          <label className="text-sm font-bold text-slate-900">Keywords</label>
                          <div className="w-full h-12 bg-slate-50 border border-slate-200 rounded-lg px-4 flex items-center text-slate-600 shadow-sm">
-                            money saving, hostels, flights
+                            {keywordInput}
+                            {/* Cursor shows if topic finished and we are typing keywords */}
+                            {topicInput.length >= STEP_1_TOPIC.length && keywordInput.length < STEP_1_KEYWORDS.length && (
+                               <span className="w-0.5 h-4 bg-blue-600 animate-pulse ml-0.5"></span>
+                            )}
                          </div>
                       </div>
                    </div>
+                   
                    <div className="flex justify-end pt-4">
-                      <div className="px-6 py-3 bg-slate-900 text-white rounded-lg text-sm font-bold shadow-md cursor-default">Generate Titles</div>
+                      <button className={`px-6 py-3 rounded-lg text-sm font-bold shadow-md transition-all ${keywordInput.length === STEP_1_KEYWORDS.length ? 'bg-slate-900 text-white hover:scale-105' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
+                        Generate Titles
+                      </button>
                    </div>
                 </div>
               )}
@@ -301,9 +349,9 @@ export default function LandingPage() {
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">AI Writing...</span>
                      </div>
                      <h1 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900">How to Travel the World on a Shoestring Budget</h1>
-                     {/* STREAMING TEXT ANIMATION */}
+                     {/* STREAMING TEXT ANIMATION (Word by Word) */}
                      <div className="text-slate-600 leading-relaxed text-sm md:text-base font-medium">
-                        {displayedText}
+                        {generatedText}
                         <span className="inline-block w-1.5 h-4 bg-blue-600 ml-1 animate-pulse align-middle"></span>
                      </div>
                   </div>
@@ -339,7 +387,7 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* --- NEW: Next Step Button --- */}
+            {/* Next Step Button */}
             <div className="mt-8 flex justify-center border-t border-slate-100 pt-6">
               <button 
                 onClick={handleNextStep}
@@ -354,7 +402,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- TESTIMONIALS (Interactive Infinite) --- */}
+      {/* --- TESTIMONIALS --- */}
       <section className="py-24 bg-slate-50 overflow-hidden">
         <div className="text-center mb-12 px-6">
           <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4">Trusted By <span className="text-blue-600">Thousands</span></h2>
