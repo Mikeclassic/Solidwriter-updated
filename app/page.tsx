@@ -29,7 +29,6 @@ export default function LandingPage() {
 
       {/* --- HERO SECTION --- */}
       <section className="relative pt-20 pb-32 px-6 text-center overflow-hidden">
-        {/* Background Gradients */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 rounded-full blur-3xl -z-10"></div>
         <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-blue-400/5 rounded-full blur-3xl -z-10"></div>
 
@@ -88,7 +87,6 @@ export default function LandingPage() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-                {/* Feature 1 */}
                 <div className="bg-background p-8 rounded-3xl border shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
                     <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mb-6 text-blue-600 group-hover:scale-110 transition-transform">
                         <PenTool className="h-7 w-7"/>
@@ -97,7 +95,6 @@ export default function LandingPage() {
                     <p className="text-muted-foreground">Don't just generate text. Generate strategy. Our 4-step wizard builds titles, outlines, and full SEO-optimized articles.</p>
                 </div>
 
-                {/* Feature 2 */}
                 <div className="bg-background p-8 rounded-3xl border shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
                     <div className="w-14 h-14 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center mb-6 text-purple-600 group-hover:scale-110 transition-transform">
                         <Share2 className="h-7 w-7"/>
@@ -106,7 +103,6 @@ export default function LandingPage() {
                     <p className="text-muted-foreground">Turn one idea into a LinkedIn think-piece, a Twitter thread, and an Instagram caption instantly.</p>
                 </div>
 
-                {/* Feature 3 */}
                 <div className="bg-background p-8 rounded-3xl border shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
                     <div className="w-14 h-14 bg-orange-50 dark:bg-orange-900/20 rounded-2xl flex items-center justify-center mb-6 text-orange-600 group-hover:scale-110 transition-transform">
                         <LayoutTemplate className="h-7 w-7"/>
@@ -115,7 +111,6 @@ export default function LandingPage() {
                     <p className="text-muted-foreground">Stuck on a landing page? Use proven formulas like AIDA, PAS, and BAB to write copy that sells.</p>
                 </div>
                 
-                {/* Feature 4 - THIS IS THE SOPHISTICATED AI SECTION */}
                 <div className="bg-background p-8 rounded-3xl border shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group md:col-span-2 relative overflow-hidden">
                     <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
                         <div className="flex-1 space-y-4">
@@ -141,7 +136,6 @@ export default function LandingPage() {
                     </div>
                 </div>
 
-                {/* Feature 5 */}
                 <div className="bg-background p-8 rounded-3xl border shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group">
                     <div className="w-14 h-14 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mb-6 text-red-600 group-hover:scale-110 transition-transform">
                         <Globe className="h-7 w-7"/>
@@ -157,37 +151,31 @@ export default function LandingPage() {
       <section id="how-it-works" className="py-24 px-6 bg-background relative overflow-hidden">
         <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-bold text-center mb-20">From Idea to Article in Minutes</h2>
-            
-            <div className="relative">
-                {/* Connecting Line (Desktop) */}
-                <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent -z-10 transform -translate-y-1/2"></div>
-
-                <div className="grid md:grid-cols-3 gap-12">
-                    <div className="relative flex flex-col items-center text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-background border-4 border-primary text-primary flex items-center justify-center text-2xl font-bold z-10">1</div>
-                        <h3 className="text-xl font-bold">Choose Topic & Tone</h3>
-                        <p className="text-muted-foreground">Tell the AI what you want to write about and who your audience is.</p>
-                    </div>
-                    <div className="relative flex flex-col items-center text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-background border-4 border-primary text-primary flex items-center justify-center text-2xl font-bold z-10">2</div>
-                        <h3 className="text-xl font-bold">Review Outline</h3>
-                        <p className="text-muted-foreground">The AI generates a structured outline. Edit, add, or remove sections.</p>
-                    </div>
-                    <div className="relative flex flex-col items-center text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-background border-4 border-primary text-primary flex items-center justify-center text-2xl font-bold z-10">3</div>
-                        <h3 className="text-xl font-bold">Generate & Export</h3>
-                        <p className="text-muted-foreground">Get a full draft in seconds. Export to PDF, Markdown, or HTML.</p>
-                    </div>
+            <div className="grid md:grid-cols-3 gap-12">
+                <div className="relative flex flex-col items-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-background border-4 border-primary text-primary flex items-center justify-center text-2xl font-bold z-10">1</div>
+                    <h3 className="text-xl font-bold">Choose Topic & Tone</h3>
+                    <p className="text-muted-foreground">Tell the AI what you want to write about and who your audience is.</p>
+                </div>
+                <div className="relative flex flex-col items-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-background border-4 border-primary text-primary flex items-center justify-center text-2xl font-bold z-10">2</div>
+                    <h3 className="text-xl font-bold">Review Outline</h3>
+                    <p className="text-muted-foreground">The AI generates a structured outline. Edit, add, or remove sections.</p>
+                </div>
+                <div className="relative flex flex-col items-center text-center space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-background border-4 border-primary text-primary flex items-center justify-center text-2xl font-bold z-10">3</div>
+                    <h3 className="text-xl font-bold">Generate & Export</h3>
+                    <p className="text-muted-foreground">Get a full draft in seconds. Export to PDF, Markdown, or HTML.</p>
                 </div>
             </div>
         </div>
       </section>
 
-      {/* --- PRICING SECTION (FIXED BUTTONS) --- */}
+      {/* --- PRICING SECTION --- */}
       <section id="pricing" className="py-24 px-6 bg-secondary/20">
         <div className="max-w-6xl mx-auto">
             <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h2>
+                <h2 className="text-3xl md:text-5xl font-bold mb-4">Transparent Pricing</h2>
                 <p className="text-xl text-muted-foreground">Start your 7-day free trial on any plan.</p>
             </div>
 
@@ -210,10 +198,10 @@ export default function LandingPage() {
                         </p>
                         
                         <ul className="space-y-4 mb-8 flex-1">
-                            <li className="flex gap-3 text-sm items-center text-foreground"><div className="p-1 rounded-full bg-green-100 text-green-600"><Check className="h-3 w-3"/></div> {plan.words} Words / month</li>
-                            <li className="flex gap-3 text-sm items-center text-foreground"><div className="p-1 rounded-full bg-green-100 text-green-600"><Check className="h-3 w-3"/></div> Access to All Wizards</li>
-                            <li className="flex gap-3 text-sm items-center text-foreground"><div className="p-1 rounded-full bg-green-100 text-green-600"><Check className="h-3 w-3"/></div> 30+ Languages</li>
-                            <li className="flex gap-3 text-sm items-center text-foreground"><div className="p-1 rounded-full bg-green-100 text-green-600"><Check className="h-3 w-3"/></div> Priority Support</li>
+                            <li className="flex gap-3 text-sm items-center text-foreground"><Check className="h-4 w-4 text-green-500"/> {plan.words} Words / month</li>
+                            <li className="flex gap-3 text-sm items-center text-foreground"><Check className="h-4 w-4 text-green-500"/> Access to All Wizards</li>
+                            <li className="flex gap-3 text-sm items-center text-foreground"><Check className="h-4 w-4 text-green-500"/> 30+ Languages</li>
+                            <li className="flex gap-3 text-sm items-center text-foreground"><Check className="h-4 w-4 text-green-500"/> Priority Support</li>
                         </ul>
                         
                         <Link href="/pricing" className="block w-full">
@@ -235,11 +223,34 @@ export default function LandingPage() {
       {/* --- FINAL CTA --- */}
       <section className="py-24 px-6 text-center">
         <div className="max-w-4xl mx-auto bg-gradient-to-br from-card to-background rounded-3xl p-12 border border-border shadow-lg">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to write 10x faster?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to scale your content?</h2>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of writers, marketers, and founders who use Solidwriter to create high-quality content in seconds.
+                Join thousands of modern writers who use Solidwriter to create high-quality content 10x faster.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <SmartStartButton text="Start Your Free Trial" />
             </div>
-            <p className="mt-6 text-sm text-muted-foreground fl
+            <p className="mt-6 text-sm text-muted-foreground flex items-center justify-center gap-2">
+                <Shield className="h-4 w-4"/> 7-day free trial. Cancel anytime.
+            </p>
+        </div>
+      </section>
+
+      <footer className="border-t py-12 px-6 bg-card/50">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="flex items-center gap-2 font-bold text-xl text-primary">
+              <Bot className="h-6 w-6" /> Solidwriter
+            </div>
+            <div className="text-sm text-muted-foreground">
+                © 2024 Solidwriter Inc. All rights reserved.
+            </div>
+            <div className="flex gap-6 text-sm text-muted-foreground">
+                <a href="#" className="hover:text-foreground">Privacy Policy</a>
+                <a href="#" className="hover:text-foreground">Terms of Service</a>
+                <a href="#" className="hover:text-foreground">Support</a>
+            </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
