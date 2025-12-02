@@ -3,7 +3,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock, User, AlertCircle, Bot } from "lucide-react";
-import Link from "next/link"; // Added Import
+import Link from "next/link";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -90,8 +90,8 @@ export default function AuthPage() {
           <div>
             <div className="flex justify-between items-center mb-1">
                 <label className="text-sm font-medium">Password</label>
-                {/* NEW LINK */}
-                <Link href="/forgot-password" class="text-xs text-primary hover:underline">
+                {/* FIXED: Changed class to className */}
+                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                     Forgot password?
                 </Link>
             </div>
