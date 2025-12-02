@@ -31,7 +31,7 @@ export default function SmartStartButton({
     } catch (error) {
       router.push("/auth");
     } finally {
-      // Keep loading to prevent flicker
+      // Keep loading until redirect
     }
   };
 
@@ -41,15 +41,13 @@ export default function SmartStartButton({
     outline: "border-2 border-primary text-primary hover:bg-primary/5"
   };
 
-  // Construct class string safely
   const variantStyle = variant === 'outline' ? variants.outline : variants.primary;
-  const combinedClassName = `${baseStyles} ${variantStyle} ${className} disabled:opacity-70 disabled:cursor-not-allowed`;
 
   return (
     <button 
       onClick={handleClick} 
       disabled={loading}
-      className={combinedClassName}
+      className={`${baseStyles} ${variantStyle} ${className} disabled:opacity-70 disabled:cursor-not-allowed`}
     >
       {loading ? <Loader2 className="h-5 w-5 animate-spin"/> : text}
       {!loading && <ArrowRight className="h-5 w-5"/>}
