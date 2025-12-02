@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
-import { Check, Bot, PenTool, ChevronDown, ChevronUp, Copy, RefreshCw, Star, PlayCircle, ArrowRight, Menu, X, Zap, Shield, Sparkles, LayoutTemplate, Globe, Cpu } from "lucide-react";
+import { Check, Bot, PenTool, ChevronDown, ChevronUp, Copy, RefreshCw, Star, PlayCircle, ArrowRight, LayoutTemplate, Zap, MessageSquare } from "lucide-react";
 import SmartStartButton from "@/components/smart-start-button";
 
 // TESTIMONIALS
@@ -38,38 +38,54 @@ const DEMO_STEPS = [
 
 // PRICING PLANS
 const PRICING_PLANS = [
-  { 
-    name: "Basic", 
-    price: "$12", 
-    period: "/month", 
+  {
+    name: "Basic",
+    monthlyPrice: 12,
+    yearlyPrice: 120,
     desc: "Perfect for individuals and small blogs.",
-    features: ["25,000 words/month", "All AI Writing Tools", "30+ Templates", "Standard Support"] 
+    features: ["25,000 words/month", "All AI Writing Assistant", "All Blog Wizards", "All AI Chatbots", "All Productivity Tools", "All Future Upcoming Features", "Customer Support via ticket"],
+    highlight: false
   },
-  { 
-    name: "Professional", 
-    price: "$24", 
-    period: "/month", 
+  {
+    name: "Professional",
+    monthlyPrice: 24,
+    yearlyPrice: 240,
     desc: "Ideal for professional writers and small teams.",
-    popular: true,
-    features: ["100,000 words/month", "Everything in Basic", "SEO Optimization Mode", "Priority Support", "Plagiarism Checker"] 
+    features: ["100,000 words/month", "All AI Writing Assistant", "All Blog Wizards", "All AI Chatbots", "All Productivity Tools", "All Future Upcoming Features", "Customer Support via ticket"],
+    highlight: true
   },
-  { 
-    name: "Business", 
-    price: "$60", 
-    period: "/month", 
-    desc: "Complete solution for scaling content.",
-    features: ["500,000 words/month", "Everything in Professional", "Team Collaboration", "API Access", "Custom Brand Voice"] 
+  {
+    name: "Advanced Pro",
+    monthlyPrice: 36,
+    yearlyPrice: 360,
+    desc: "For teams and agencies with high-volume needs.",
+    features: ["250,000 words/month", "All AI Writing Assistant", "All Blog Wizards", "All AI Chatbots", "All Productivity Tools", "All Future Upcoming Features", "Customer Support via ticket"],
+    highlight: false
+  },
+  {
+    name: "Premium",
+    monthlyPrice: 48,
+    yearlyPrice: 480,
+    desc: "Enhanced features for growing businesses.",
+    features: ["350,000 words/month", "All AI Writing Assistant", "All Blog Wizards", "All AI Chatbots", "All Productivity Tools", "All Future Upcoming Features", "Customer Support via ticket"],
+    highlight: false
+  },
+  {
+    name: "Business",
+    monthlyPrice: 60,
+    yearlyPrice: 600,
+    desc: "Complete solution for businesses.",
+    features: ["500,000 words/month", "All AI Writing Assistant", "All Blog Wizards", "All AI Chatbots", "All Productivity Tools", "All Future Upcoming Features", "Customer Support via ticket"],
+    highlight: false
+  },
+  {
+    name: "Ultimate",
+    monthlyPrice: 72,
+    yearlyPrice: 720,
+    desc: "Ultimate power for large enterprises.",
+    features: ["Unlimited words/month", "All AI Writing Assistant", "All Blog Wizards", "All AI Chatbots", "All Productivity Tools", "All Future Upcoming Features", "Customer Support via ticket"],
+    highlight: false
   }
-];
-
-// FEATURES LIST
-const FEATURES_LIST = [
-  { icon: Sparkles, title: "AI Writing Assistant", desc: "Generate high-quality blog posts, emails, and social media captions in seconds." },
-  { icon: Check, title: "Grammar Checker", desc: "Built-in advanced grammar and style checking to ensure error-free content." },
-  { icon: LayoutTemplate, title: "Content Organization", desc: "Hierarchical content management system to keep your projects structured." },
-  { icon: Globe, title: "Multilingual Support", desc: "Create content in over 25 languages with native-level fluency." },
-  { icon: Shield, title: "Plagiarism Free", desc: "All content is unique and checked against billions of web pages." },
-  { icon: Zap, title: "SEO Optimization", desc: "Integrated SEO tools to help your content rank higher on search engines." },
 ];
 
 // Animation Data
@@ -82,9 +98,7 @@ export default function LandingPage() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  
-  // Mobile Menu State
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   
   // Animation States
   const [topicInput, setTopicInput] = useState("");
@@ -146,14 +160,12 @@ export default function LandingPage() {
       let isCancelled = false;
 
       const typeInputs = async () => {
-        // Type Topic
         for (let i = 0; i <= STEP_1_TOPIC.length; i++) {
           if (isCancelled) return;
           setTopicInput(STEP_1_TOPIC.slice(0, i));
           await new Promise(r => setTimeout(r, 40));
         }
         await new Promise(r => setTimeout(r, 400));
-        // Type Keywords
         for (let i = 0; i <= STEP_1_KEYWORDS.length; i++) {
           if (isCancelled) return;
           setKeywordInput(STEP_1_KEYWORDS.slice(0, i));
@@ -215,49 +227,24 @@ export default function LandingPage() {
       
       {/* --- HEADER --- */}
       <header className="px-4 md:px-6 h-16 md:h-20 flex items-center justify-between sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100">
-        <div className="flex items-center gap-2 font-bold text-xl md:text-2xl text-slate-900 tracking-tight z-50">
+        <div className="flex items-center gap-2 font-bold text-xl md:text-2xl text-slate-900 tracking-tight">
           <div className="text-blue-600">
             <Bot className="h-6 w-6 md:h-8 md:w-8" />
           </div>
           Solidwriter
         </div>
-
-        {/* Desktop Nav */}
         <nav className="hidden md:flex gap-8 text-sm font-semibold text-slate-600">
+          <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How It Works</a>
           <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
           <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
-          <a href="#how-it-works" className="hover:text-blue-600 transition-colors">How It Works</a>
           <a href="#faq" className="hover:text-blue-600 transition-colors">FAQ</a>
         </nav>
-
-        {/* Desktop Buttons */}
-        <div className="hidden md:flex gap-2 md:gap-4 items-center">
-          <Link href="/auth">
+        <div className="flex gap-2 md:gap-4 items-center">
+          <Link href="/auth" className="hidden sm:block">
             <button className="px-3 py-2 text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Log in</button>
           </Link>
           <SmartStartButton text="Try Free" className="!px-4 !py-2 !text-xs md:!text-sm !shadow-none !bg-blue-600 !text-white hover:!bg-blue-700 !rounded-lg" />
         </div>
-
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden z-50 flex items-center gap-4">
-            <Link href="/auth" className="text-sm font-bold text-slate-600">Log in</Link>
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 text-slate-600">
-                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-        </div>
-
-        {/* Mobile Menu Dropdown */}
-        {mobileMenuOpen && (
-            <div className="absolute top-full left-0 w-full bg-white border-b border-slate-100 shadow-xl p-4 flex flex-col gap-4 md:hidden animate-in slide-in-from-top-2">
-                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">Features</a>
-                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">Pricing</a>
-                <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">How It Works</a>
-                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="px-4 py-3 rounded-lg hover:bg-slate-50 font-semibold text-slate-700">FAQ</a>
-                <div className="border-t border-slate-100 pt-4 mt-2">
-                     <SmartStartButton text="Try Free Now" className="w-full justify-center !bg-blue-600 !text-white hover:!bg-blue-700 !rounded-lg" />
-                </div>
-            </div>
-        )}
       </header>
 
       {/* --- HERO SECTION --- */}
@@ -281,71 +268,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* --- FEATURES SECTION --- */}
-      <section id="features" className="py-24 px-6 bg-slate-50">
-        <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Powerful Features</h2>
-                <p className="text-lg text-slate-500 max-w-2xl mx-auto">Everything you need to create amazing content in one place.</p>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {FEATURES_LIST.map((feature, idx) => (
-                    <div key={idx} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6">
-                            <feature.icon className="h-6 w-6" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                        <p className="text-slate-600 leading-relaxed">{feature.desc}</p>
-                    </div>
-                ))}
-            </div>
-        </div>
-      </section>
-
-      {/* --- PRICING SECTION --- */}
-      <section id="pricing" className="py-24 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6">Simple Pricing</h2>
-                <p className="text-lg text-slate-500">Start your 7-day free trial on any plan. Cancel anytime.</p>
-            </div>
-            <div className="grid md:grid-cols-3 gap-8">
-                {PRICING_PLANS.map((plan, idx) => (
-                    <div key={idx} className={`relative p-8 rounded-3xl border ${plan.popular ? 'border-blue-600 shadow-xl scale-105 bg-white z-10' : 'border-slate-200 bg-slate-50/50'}`}>
-                        {plan.popular && <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Most Popular</div>}
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
-                        <div className="flex items-baseline gap-1 mb-4">
-                            <span className="text-4xl font-extrabold text-slate-900">{plan.price}</span>
-                            <span className="text-slate-500 font-medium">{plan.period}</span>
-                        </div>
-                        <p className="text-sm text-slate-500 mb-8 h-10">{plan.desc}</p>
-                        <ul className="space-y-4 mb-8">
-                            {plan.features.map((feat, i) => (
-                                <li key={i} className="flex items-center gap-3 text-sm font-medium text-slate-700">
-                                    <Check className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                                    {feat}
-                                </li>
-                            ))}
-                        </ul>
-                        <button className={`w-full py-3 rounded-xl font-bold transition-all ${plan.popular ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg' : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-600 hover:text-blue-600'}`}>
-                            Choose {plan.name}
-                        </button>
-                    </div>
-                ))}
-            </div>
-        </div>
-      </section>
-
       {/* --- INTERACTIVE DEMO --- */}
-      <section id="how-it-works" className="py-24 px-4 bg-slate-50" ref={demoRef}>
-        <div className="text-center mb-12">
+      <section id="how-it-works" className="py-24 px-4 bg-white" ref={demoRef}>
+        <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-bold mb-4 animate-bounce">
             <PlayCircle className="h-4 w-4"/> Watch Demo Below
           </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900">See Solidwriter in Action</h2>
+          <h2 className="text-2xl md:text-4xl font-bold text-slate-900">See Solidwriter in Action</h2>
         </div>
 
         <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden ring-1 ring-slate-100">
+          
           {/* Stepper Navigation */}
           <div 
             ref={stepperRef}
@@ -409,7 +342,6 @@ export default function LandingPage() {
                    </div>
                 </div>
               )}
-
               {activeStep === 2 && (
                 <div className="max-w-3xl mx-auto w-full space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                   <h3 className="text-lg font-bold text-center mb-4">Choose a Title</h3>
@@ -423,7 +355,6 @@ export default function LandingPage() {
                   </div>
                 </div>
               )}
-
               {activeStep === 3 && (
                 <div className="max-w-3xl mx-auto w-full space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                   <div className="flex justify-between items-center mb-2">
@@ -441,7 +372,6 @@ export default function LandingPage() {
                   </div>
                 </div>
               )}
-
               {activeStep === 4 && (
                 <div className="max-w-3xl mx-auto w-full space-y-6 animate-in fade-in duration-500">
                   <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 md:p-8 min-h-[300px] relative overflow-hidden flex flex-col">
@@ -457,7 +387,6 @@ export default function LandingPage() {
                   </div>
                 </div>
               )}
-
               {activeStep === 5 && (
                  <div className="max-w-3xl mx-auto w-full space-y-6 animate-in zoom-in-95 duration-500">
                     <div className="flex justify-between items-center">
@@ -486,7 +415,6 @@ export default function LandingPage() {
                  </div>
               )}
             </div>
-
             <div className="mt-8 flex justify-center border-t border-slate-100 pt-6">
               <button 
                 onClick={handleNextStep}
@@ -497,6 +425,48 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* --- FEATURES SECTION --- */}
+      <section id="features" className="py-24 px-6 bg-slate-50/50">
+        <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4">Powerful Features To <span className="text-indigo-600">Supercharge Your Writing</span></h2>
+                <p className="text-lg text-slate-500 max-w-2xl mx-auto">Our AI-powered tools help you create better content faster, without sacrificing quality or your unique voice.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* Feature 1 */}
+                <div className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 transition-transform hover:-translate-y-1">
+                    <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-6 shadow-indigo-200 shadow-lg">
+                        <LayoutTemplate className="h-7 w-7" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">Step-by-Step Content Builder</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">Create perfectly structured content with our guided process. Our AI analyzes your topic and creates the ideal framework.</p>
+                    <Link href="/wizard" className="text-indigo-600 font-bold hover:underline flex items-center gap-1">Learn more <ArrowRight className="h-4 w-4"/></Link>
+                </div>
+
+                {/* Feature 2 */}
+                <div className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 transition-transform hover:-translate-y-1">
+                    <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-6 shadow-indigo-200 shadow-lg">
+                        <Zap className="h-7 w-7" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">One-Click Blog Wizard</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">Generate complete blog posts instantly with just one click. Provide a topic and let our AI do the heavy lifting.</p>
+                    <Link href="/wizard" className="text-indigo-600 font-bold hover:underline flex items-center gap-1">Learn more <ArrowRight className="h-4 w-4"/></Link>
+                </div>
+
+                {/* Feature 3 */}
+                <div className="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 transition-transform hover:-translate-y-1">
+                    <div className="w-14 h-14 bg-indigo-600 rounded-xl flex items-center justify-center text-white mb-6 shadow-indigo-200 shadow-lg">
+                        <MessageSquare className="h-7 w-7" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">AI Writing Assistant</h3>
+                    <p className="text-slate-600 leading-relaxed mb-6">Get real-time suggestions, grammar corrections, and style improvements as you write. It&apos;s like having a professional editor by your side.</p>
+                    <Link href="/wizard" className="text-indigo-600 font-bold hover:underline flex items-center gap-1">Learn more <ArrowRight className="h-4 w-4"/></Link>
+                </div>
+            </div>
         </div>
       </section>
 
@@ -516,7 +486,7 @@ export default function LandingPage() {
           onTouchEnd={() => setIsTestimonialsPaused(false)}
         >
           {TESTIMONIALS.map((t, i) => (
-            <div key={i} className="w-[300px] md:w-[400px] flex-shrink-0 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 select-none">
+            <div key={i} className="w-[300px] md:w-[400px] flex-shrink-0 bg-slate-50 p-6 rounded-2xl shadow-sm border border-slate-100 select-none">
               <div className="flex gap-1 mb-3">
                 {[1,2,3,4,5].map(s => <Star key={s} className="h-4 w-4 text-yellow-400 fill-current"/>)}
               </div>
@@ -533,8 +503,64 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* --- PRICING SECTION --- */}
+      <section id="pricing" className="py-24 px-6 bg-slate-50/50">
+        <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-16">
+                <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-4">Choose Your <span className="text-indigo-600">Perfect Plan</span></h2>
+                <p className="text-lg text-slate-500 mb-8">Choose the plan that works best for your needs, with no hidden fees or complicated tiers.</p>
+                
+                {/* Billing Toggle */}
+                <div className="inline-flex bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
+                    <button 
+                        onClick={() => setBillingCycle("monthly")}
+                        className={`px-6 py-2 rounded-md text-sm font-bold transition-all ${billingCycle === "monthly" ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                    >
+                        Monthly
+                    </button>
+                    <button 
+                        onClick={() => setBillingCycle("yearly")}
+                        className={`px-6 py-2 rounded-md text-sm font-bold transition-all ${billingCycle === "yearly" ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                    >
+                        Yearly (Save 20%)
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {PRICING_PLANS.map((plan) => (
+                    <div key={plan.name} className="bg-white rounded-2xl shadow-lg border border-slate-100 p-8 flex flex-col hover:border-indigo-100 transition-all duration-300">
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">{plan.name}</h3>
+                        <div className="flex items-baseline gap-1 mb-4">
+                            <span className="text-4xl font-extrabold text-slate-900">${billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}</span>
+                            <span className="text-slate-500">/month</span>
+                        </div>
+                        <p className="text-slate-500 text-sm mb-6 pb-6 border-b border-slate-100">{plan.desc}</p>
+                        
+                        <div className="space-y-4 mb-8 flex-1">
+                            {plan.features.map((feature, i) => (
+                                <div key={i} className="flex items-start gap-3 text-sm text-slate-600">
+                                    <div className="bg-green-100 rounded-full p-0.5 mt-0.5">
+                                        <Check className="h-3 w-3 text-green-600" />
+                                    </div>
+                                    {feature}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* SmartStartButton handles the auth check: If logged in -> wizard, if not -> auth */}
+                        <SmartStartButton 
+                            text="Start 7-Day Free Trial" 
+                            className={`!w-full !rounded-lg !py-3 !text-sm !shadow-none ${plan.highlight ? '!bg-indigo-600 !text-white hover:!bg-indigo-700' : '!bg-white !text-slate-900 border border-slate-200 hover:!bg-slate-50'}`}
+                        />
+                    </div>
+                ))}
+            </div>
+        </div>
+      </section>
+
       {/* --- FAQ --- */}
-      <section id="faq" className="py-24 px-6 bg-slate-50">
+      <section id="faq" className="py-24 px-6 bg-white">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-5xl font-extrabold text-center text-slate-900 mb-12">Frequently Asked <span className="text-blue-600">Questions</span></h2>
           <div className="space-y-4">
