@@ -32,74 +32,32 @@ export default function Editor({ params }: { params: { id: string } }) {
     setSaving(false);
   };
 
-  // --- CLEAN EXPORT LOGIC ---
   const handleExport = (type: 'pdf' | 'md' | 'html') => {
     const filename = (title || 'document').replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
     if (type === 'pdf') {
         const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-        // Strip HTML tags for clean PDF text
         const cleanText = content.replace(/<[^>]+>/g, '\n').replace(/\n\s*\n/g, '\n\n').trim();
-        
-        doc.setFontSize(24);
-        doc.text(title, 40, 60);
-        
+        doc.setFontSize(24); doc.text(title, 40, 60);
         doc.setFontSize(12);
-        const splitText = doc.splitTextToSize(cleanText, 515); // A4 width - margins
+        const splitText = doc.splitTextToSize(cleanText, 515);
         doc.text(splitText, 40, 100);
-        
         doc.save(`${filename}.pdf`);
-    } 
-    else if (type === 'html') {
-        // Mobile-responsive HTML wrapper
-        const htmlBody = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title}</title>
-    <style>
-        body { font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
-        h2 { margin-top: 1.5em; color: #111; }
-        p { margin-bottom: 1em; }
-        img { max-width: 100%; height: auto; border-radius: 8px; }
-    </style>
-</head>
-<body>
-    <h1>${title}</h1>
-    ${content}
-</body>
-</html>`;
-        const blob = new Blob([htmlBody], { type: 'text/html' });
-        downloadBlob(blob, `${filename}.html`);
-    }
-    else if (type === 'md') {
-        // Basic HTML to Markdown converter
-        let md = content
-            .replace(/<h2>(.*?)<\/h2>/g, '\n## $1\n')
-            .replace(/<h3>(.*?)<\/h3>/g, '\n### $1\n')
-            .replace(/<p>(.*?)<\/p>/g, '$1\n\n')
-            .replace(/<strong>(.*?)<\/strong>/g, '**$1**')
-            .replace(/<em>(.*?)<\/em>/g, '*$1*')
-            .replace(/<ul>/g, '').replace(/<\/ul>/g, '')
-            .replace(/<li>(.*?)<\/li>/g, '- $1\n')
-            .replace(/<[^>]+>/g, ''); // Remove remaining tags
-            
-        const blob = new Blob([md.trim()], { type: 'text/markdown' });
-        downloadBlob(blob, `${filename}.md`);
+    } else {
+        const fileContent = type === 'html' 
+            ? `<html><head><title>${title}</title></head><body><h1>${title}</h1>${content}</body></html>` 
+            : content.replace(/<[^>]+>/g, ''); // Simple MD strip
+        
+        const blob = new Blob([fileContent], { type: type === 'html' ? 'text/html' : 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.${type}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
     setIsExportOpen(false);
-  };
-
-  const downloadBlob = (blob: Blob, name: string) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
   };
 
   const generateAI = async () => {
@@ -110,7 +68,12 @@ export default function Editor({ params }: { params: { id: string } }) {
     try {
         const res = await fetch('/api/generate', {
             method: 'POST',
-            body: JSON.stringify({ prompt, tone: 'Professional', documentId: params.id })
+            body: JSON.stringify({ 
+                prompt, 
+                tone: 'Professional', 
+                documentId: params.id,
+                currentContent: content // PASS EXISTING CONTENT CONTEXT
+            })
         });
 
         if (res.status === 403) { setErrorMsg("Limit Reached! Upgrade to continue."); setGenerating(false); return; }
@@ -118,8 +81,9 @@ export default function Editor({ params }: { params: { id: string } }) {
 
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
-        // Add spacing before new AI content
-        setContent(prev => prev + "<br/><br/>");
+        
+        // REPLACEMENT LOGIC: Clear current content to stream the rewrite
+        setContent(""); 
 
         if (reader) {
             while (true) {
@@ -144,22 +108,21 @@ export default function Editor({ params }: { params: { id: string } }) {
         </div>
         <div className="flex items-center gap-2">
             
-            {/* EXPORT DROPDOWN */}
             <div className="relative">
                 <button onClick={() => setIsExportOpen(!isExportOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors text-sm font-medium">
                     <Download className="h-4 w-4"/> <span className="hidden md:inline">Export</span> <ChevronDown className="h-3 w-3"/>
                 </button>
                 {isExportOpen && (
                     <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-3 text-sm hover:bg-secondary transition-colors border-b border-border/50">Download PDF (Text)</button>
+                        <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-3 text-sm hover:bg-secondary transition-colors border-b border-border/50">Download PDF</button>
                         <button onClick={() => handleExport('md')} className="w-full text-left px-4 py-3 text-sm hover:bg-secondary transition-colors border-b border-border/50">Download Markdown</button>
-                        <button onClick={() => handleExport('html')} className="w-full text-left px-4 py-3 text-sm hover:bg-secondary transition-colors">Download HTML (Mobile)</button>
+                        <button onClick={() => handleExport('html')} className="w-full text-left px-4 py-3 text-sm hover:bg-secondary transition-colors">Download HTML</button>
                     </div>
                 )}
             </div>
 
             <button onClick={() => setShowAi(!showAi)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors text-sm">
-                <Sparkles className="h-4 w-4"/> <span className="hidden md:inline">AI Writer</span>
+                <Sparkles className="h-4 w-4"/> <span className="hidden md:inline">AI Assistant</span>
             </button>
             <button onClick={saveDoc} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 transition-colors text-sm" disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin"/> : <Save className="h-4 w-4"/>} <span className="hidden md:inline">Save</span>
@@ -169,10 +132,6 @@ export default function Editor({ params }: { params: { id: string } }) {
 
       <div className="flex flex-1 overflow-hidden relative">
         <div className="flex-1 overflow-y-auto p-4 md:p-8 max-w-4xl mx-auto w-full">
-            {/* Using textarea for basic editing, but handling HTML display is tricky in textarea. 
-                Ideally, you'd use a ContentEditable div or a library like Tiptap. 
-                For now, this textarea will show the HTML source code which is "Clean".
-            */}
             <textarea 
                 value={content} 
                 onChange={(e) => setContent(e.target.value)} 
@@ -191,12 +150,12 @@ export default function Editor({ params }: { params: { id: string } }) {
                 <div className="space-y-4 flex-1 flex flex-col">
                     <textarea 
                         className="w-full border rounded-lg p-3 text-sm bg-background flex-1 md:flex-none md:h-40 resize-none" 
-                        placeholder="e.g. Write an intro for this article..." 
+                        placeholder="e.g. Make it shorter, Add an intro, Fix grammar..." 
                         value={prompt} 
                         onChange={(e) => setPrompt(e.target.value)}
                     />
                     <button onClick={generateAI} disabled={generating || !prompt} className="w-full bg-primary text-primary-foreground py-2 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 flex justify-center gap-2">
-                        {generating ? <Loader2 className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4"/>} Generate
+                        {generating ? <Loader2 className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4"/>} Rewrite
                     </button>
                 </div>
             </div>
