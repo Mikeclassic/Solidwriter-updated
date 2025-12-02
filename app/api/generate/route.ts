@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { type, topic, keywords, tone, title, outline, documentId, platform, framework } = body;
+    const { type, topic, keywords, tone, title, outline, documentId, platform, framework, currentContent } = body;
 
     let systemPrompt = "";
     let userPrompt = "";
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
             systemPrompt = "You are an SEO expert. Return ONLY a raw JSON array of 5 catchy, SEO-optimized blog titles. Example: [\"Title 1\", \"Title 2\"]. Do not output any other text.";
             userPrompt = `Topic: ${topic}. Keywords: ${keywords}. Tone: ${tone}.`;
         } else {
-            systemPrompt = "You are a content strategist. Return ONLY a raw JSON array of 6-8 distinct section headers. Example: [\"Intro\", \"Point 1\"]. Do not output any other text.";
+            systemPrompt = "You are a content strategist. Return ONLY a raw JSON array of 6-8 distinct section headers (H2s). Example: [\"Intro\", \"Point 1\"]. Do not output any other text.";
             userPrompt = `Title: ${title}. Tone: ${tone}. Keywords: ${keywords}`;
         }
 
@@ -76,12 +76,11 @@ export async function POST(req: Request) {
         return NextResponse.json({ result: content });
     }
 
-    // --- 2. STREAMING TASKS (CLEAN HTML ENFORCED) ---
-    // Added specific instructions to avoid Markdown (#, *) and use HTML tags instead.
-    const cleanInstruction = "Output format: Clean HTML. Use <h2> for headers, <p> for paragraphs, <ul>/<li> for lists, and <strong> for emphasis. Do NOT use Markdown symbols like #, *, or **. Do not wrap the response in ```html code blocks.";
+    // --- 2. STREAMING TASKS ---
+    const cleanInstruction = "Output clean HTML (e.g. <h2>, <p>). Do not use Markdown (#, *) and do not include ```html blocks.";
 
     if (type === "article") {
-        systemPrompt = `You are an expert writer. Write a comprehensive, long-form blog post. Tone: ${tone}. ${cleanInstruction}`;
+        systemPrompt = `You are an expert writer. Write a comprehensive blog post. Tone: ${tone}. ${cleanInstruction}`;
         userPrompt = `Title: ${title}\n\nOutline Structure:\n${JSON.stringify(outline)}\n\nWrite the full article now.`;
     } else if (type === "social") {
         systemPrompt = `You are a social media expert for ${platform}. Write 3 distinct post options. Tone: ${tone}. ${cleanInstruction}`;
@@ -93,8 +92,15 @@ export async function POST(req: Request) {
         systemPrompt = `Master copywriter using the ${framework} framework. Tone: ${tone}. ${cleanInstruction}`;
         userPrompt = `Topic: ${topic}\nContext: ${keywords}`;
     } else {
-        systemPrompt = `You are a professional writing assistant. Tone: ${tone || "Professional"}. ${cleanInstruction}`;
-        userPrompt = body.prompt;
+        // --- EDITOR ASSISTANT LOGIC (Context Aware) ---
+        systemPrompt = `You are a professional editor. You will receive existing content and an instruction. You must rewrite the ENTIRE content to satisfy the instruction. 
+        - If the user asks to "shorten", output the full shortened version. 
+        - If "add intro", output the full text with the intro added.
+        - Do NOT simply output the new part. Output the COMPLETE final text.
+        - Tone: ${tone || "Professional"}. 
+        - ${cleanInstruction}`;
+        
+        userPrompt = `EXISTING CONTENT:\n"${currentContent}"\n\nINSTRUCTION: ${body.prompt}\n\nREWRITTEN CONTENT:`;
     }
 
     const response = await openai.chat.completions.create({
@@ -117,12 +123,11 @@ export async function POST(req: Request) {
             });
 
             if (documentId) {
-                if (["article", "social", "ads", "copywriting"].includes(type)) {
-                     await db.document.update({
-                        where: { id: documentId },
-                        data: { content: completion }
-                    });
-                }
+                // We overwrite the content because the AI is rewriting the whole thing
+                await db.document.update({
+                    where: { id: documentId },
+                    data: { content: completion }
+                });
             }
         }
     });
