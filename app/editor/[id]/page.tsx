@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Save, Sparkles, Loader2, Bot } from "lucide-react";
+import { ArrowLeft, Save, Sparkles, Loader2, Bot, Download, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import jsPDF from "jspdf";
 
 export default function Editor({ params }: { params: { id: string } }) {
   const [content, setContent] = useState("");
@@ -11,6 +12,7 @@ export default function Editor({ params }: { params: { id: string } }) {
   const [prompt, setPrompt] = useState("");
   const [showAi, setShowAi] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isExportOpen, setIsExportOpen] = useState(false);
   
   useEffect(() => {
     fetch(`/api/documents/${params.id}`)
@@ -30,6 +32,27 @@ export default function Editor({ params }: { params: { id: string } }) {
     setSaving(false);
   };
 
+  // EXPORT LOGIC
+  const handleExport = (type: 'pdf' | 'md' | 'html') => {
+    if (type === 'pdf') {
+        const doc = new jsPDF();
+        const splitText = doc.splitTextToSize(content, 180);
+        doc.text(title, 10, 10);
+        doc.text(splitText, 10, 20);
+        doc.save(`${title || 'document'}.pdf`);
+    } else {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title || 'document'}.${type}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+    setIsExportOpen(false);
+  };
+
   const generateAI = async () => {
     if (!prompt) return;
     setGenerating(true);
@@ -41,13 +64,12 @@ export default function Editor({ params }: { params: { id: string } }) {
             body: JSON.stringify({ prompt, tone: 'Professional', documentId: params.id })
         });
 
-        if (res.status === 403) { setErrorMsg("Limit Reached!"); setGenerating(false); return; }
+        if (res.status === 403) { setErrorMsg("Limit Reached! Upgrade to continue."); setGenerating(false); return; }
         if (!res.ok) throw new Error("Failed");
 
-        // Streaming Reader
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
-        setContent(prev => prev + "\n\n"); // Add spacing
+        setContent(prev => prev + "\n\n");
 
         if (reader) {
             while (true) {
@@ -71,6 +93,21 @@ export default function Editor({ params }: { params: { id: string } }) {
             <input value={title} onChange={(e) => setTitle(e.target.value)} className="font-semibold text-lg bg-transparent focus:outline-none w-full md:w-auto text-foreground" placeholder="Untitled Document"/>
         </div>
         <div className="flex items-center gap-2">
+            
+            {/* EXPORT DROPDOWN */}
+            <div className="relative">
+                <button onClick={() => setIsExportOpen(!isExportOpen)} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors text-sm font-medium">
+                    <Download className="h-4 w-4"/> <span className="hidden md:inline">Export</span> <ChevronDown className="h-3 w-3"/>
+                </button>
+                {isExportOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-40 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors">Download PDF</button>
+                        <button onClick={() => handleExport('md')} className="w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors">Download Markdown</button>
+                        <button onClick={() => handleExport('html')} className="w-full text-left px-4 py-2 text-sm hover:bg-secondary transition-colors">Download HTML</button>
+                    </div>
+                )}
+            </div>
+
             <button onClick={() => setShowAi(!showAi)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium hover:bg-primary/20 transition-colors text-sm">
                 <Sparkles className="h-4 w-4"/> <span className="hidden md:inline">AI Writer</span>
             </button>
